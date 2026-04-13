@@ -1,0 +1,5 @@
+import datetime
+DD, MM, YYYY = map(int, input("Enter date to be converted to day:").split())
+date = datetime.date(YYYY, MM, DD)
+print("DAY:")
+print(date.strftime("%A").upper())
