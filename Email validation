@@ -1,0 +1,6 @@
+e=input("enter your email id to verify:")
+s=['@','.']
+if '@' in e and '.' in e:
+   print(e," is valid")
+else:
+   print(e," is not valid")
