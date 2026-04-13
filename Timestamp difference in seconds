@@ -1,0 +1,8 @@
+import datetime
+timestamp1 = input("Enter Timestamp1:(dd-mm-yyyy hh:mm:ss)")
+timestamp2 = input("Enter Timestamp2:(dd-mm-yyyy hh:mm:ss)")
+fmt = "%d-%m-%Y %H:%M:%S"
+dt1 = datetime.strptime(timestamp1, fmt)
+dt2 = datetime.strptime(timestamp2, fmt)
+diff_seconds = abs(int((dt1 - dt2).total_seconds()))
+print(diff_seconds)
