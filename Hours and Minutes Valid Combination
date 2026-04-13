@@ -1,0 +1,23 @@
+T = int(input("Enter T: ")) 
+M_total = int(input("Enter M_total: "))
+if M_total &lt; 60 or M_total % 10 != 0 or T &gt;= M_total:
+    print("INVALID INPUT") 
+else:
+    found = False
+    for H in range(T + 1):
+        M = T - H
+        if M &gt; 0:
+            rem = M_total - (H * 60)
+            if rem % M == 0:
+                U = rem 
+                if 0 &lt; U &lt; 60:
+                    print(f"H = {H}, M = {M}")
+                    found = True
+                    break
+        elif M == 0:
+            if H * 60 == M_total:
+                print(f"H = {H}, M = 0")
+                found = True
+                break
+    if found == False:
+        print("INVALID INPUT")
