@@ -1,0 +1,24 @@
+T = int(input("Enter T: "))
+H_total = int(input("Enter H_total"))
+if H_total < 24 or H_total % 2 != 0 or T >= H_total:
+    print("INVALID INPUT") 
+else:
+    found = False
+    for D in range(T + 1):
+        H = T - D
+        if H > 0:
+            remaining_needed = H_total - (24 * D)
+            if remaining_needed % H == 0:
+                U = remaining_needed 
+                if 0 < U < 24:
+                    print(f"D = {D}, H = {H}")
+                    found = True
+                    break
+        
+        elif H == 0:
+            if 24 * D == H_total:
+                print(f"D = {D}, H = 0")
+                found = True
+                break
+    if found == False:
+        print("INVALID INPUT")
