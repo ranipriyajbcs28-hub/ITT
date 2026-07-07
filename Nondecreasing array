@@ -1,0 +1,25 @@
+class Solution {
+public:
+    bool checkPossibility(vector<int>& nums) {
+        int count = 0;
+        for (int i = 0; i < nums.size() - 1; i++) {
+            if (nums[i] > nums[i + 1]) {
+                count++;
+                if (count > 1) {
+                    return false;
+                }
+                
+                // If the violation happens at the very beginning, 
+                // or if dropping nums[i] down to nums[i+1] is safe
+                if (i == 0 || nums[i + 1] >= nums[i - 1]) {
+                    nums[i] = nums[i + 1]; 
+                } 
+                // Otherwise, we must look ahead and raise nums[i+1] to nums[i]
+                else {
+                    nums[i + 1] = nums[i]; 
+                }
+            }
+        }
+        return true;
+    }
+};
