@@ -1,0 +1,20 @@
+class Solution(object):
+    def containsNearbyAlmostDuplicate(self, nums, indexDiff, valueDiff):
+        if valueDiff < 0:
+            return False
+        buckets = {}
+        w = valueDiff + 1
+        
+        for i in range(len(nums)):
+            bucket_id = nums[i] // w
+            if bucket_id in buckets:
+                return True
+            if (bucket_id - 1) in buckets and abs(nums[i] - buckets[bucket_id - 1]) <= valueDiff:
+                return True
+            if (bucket_id + 1) in buckets and abs(nums[i] - buckets[bucket_id + 1]) <= valueDiff:
+                return True
+            buckets[bucket_id] = nums[i]
+            if i >= indexDiff:
+                old_bucket_id = nums[i - indexDiff] // w
+                del buckets[old_bucket_id]
+        return False
