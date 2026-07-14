@@ -1,0 +1,19 @@
+class Solution(object):
+    def smallestDistancePair(self, nums, k):
+        nums.sort()  
+        low = 0
+        high = nums[-1] - nums[0]
+        while low < high:
+            mid_guess = (low + high) // 2
+            pair_count = 0
+            left = 0
+            for right in range(len(nums)):
+                while nums[right] - nums[left] > mid_guess:
+                    left += 1
+                pair_count += (right - left)
+            if pair_count >= k:
+                high = mid_guess  
+            else:
+                low = mid_guess + 1  
+                
+        return low
