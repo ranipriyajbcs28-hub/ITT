@@ -1,0 +1,27 @@
+class Solution(object):
+    def isRectangleCover(self, rectangles):
+        min_x = float('inf')
+        min_y = float('inf')
+        max_a = float('-inf')
+        max_b = float('-inf')
+        
+        total_area = 0
+        corners = set()
+        
+        for x, y, a, b in rectangles:
+            min_x = min(min_x, x)
+            min_y = min(min_y, y)
+            max_a = max(max_a, a)
+            max_b = max(max_b, b)
+            total_area += (a - x) * (b - y)
+            current_corners = [(x, y), (x, b), (a, y), (a, b)]
+            for corner in current_corners:
+                if corner in corners:
+                    corners.remove(corner)
+                else:
+                    corners.add(corner)
+        expected_corners = {(min_x, min_y), (min_x, max_b), (max_a, min_y), (max_a, max_b)}
+        if corners != expected_corners:
+            return False
+        expected_area = (max_a - min_x) * (max_b - min_y)
+        return total_area == expected_area
