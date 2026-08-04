@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+int characterReplacement(char* s, int k) {
+    int len = strlen(s);
+    int counts[26] = {0};
+    
+    int left = 0;
+    int maxCount = 0; 
+    int maxLength = 0; 
+
+    for (int right = 0; right < len; right++) {
+        counts[s[right] - 'A']++;
+        
+        maxCount = MAX(maxCount, counts[s[right] - 'A']);
+
+        while ((right - left + 1) - maxCount > k) {
+            counts[s[left] - 'A']--;
+            left++;
+        }
+        maxLength = MAX(maxLength, right - left + 1);
+    }
+
+    return maxLength;
+}
