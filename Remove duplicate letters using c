@@ -1,0 +1,35 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+char* removeDuplicateLetters(char* s) {
+    int len = strlen(s);
+    int count[26] = {0};
+    bool in_stack[26] = {false};
+    for (int i = 0; i < len; i++) {
+        count[s[i] - 'a']++;
+    }
+    char* stack = (char*)malloc(sizeof(char) * (len + 1));
+    int top = -1;
+    for (int i = 0; i < len; i++) {
+        char c = s[i];
+        int idx = c - 'a';
+        
+        count[idx]--;
+        
+        if (in_stack[idx]) {
+            continue;
+        }
+        
+        while (top >= 0 && stack[top] > c && count[stack[top] - 'a'] > 0) {
+            in_stack[stack[top] - 'a'] = false;
+            top--;
+        }
+        
+        top++;
+        stack[top] = c;
+        in_stack[idx] = true;
+    }
+    stack[top + 1] = '\0';
+    return stack;
+}
