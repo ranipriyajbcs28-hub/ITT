@@ -1,0 +1,19 @@
+#include <stdio.h>
+#include <string.h>
+
+int minLength(char* s) {
+    int len = strlen(s);
+    char stack[105]; 
+    int top = -1;
+
+    for (int i = 0; i < len; i++) {
+        char current = s[i];
+        if (top >= 0 && ((stack[top] == 'A' && current == 'B') || (stack[top] == 'C' && current == 'D'))) {
+            top--; // Pop the top element
+        } else {
+            top++;
+            stack[top] = current; 
+        }
+    }
+    return top + 1;
+}
