@@ -1,0 +1,50 @@
+#include <stdlib.h>
+
+#define MAX_SIZE 30005
+typedef struct {
+    int val;
+    int min;
+} Element;
+
+typedef struct {
+    Element* data;
+    int topIndex;
+} MinStack;
+
+/** Initialize your data structure here. */
+MinStack* minStackCreate() {
+    MinStack* obj = (MinStack*)malloc(sizeof(MinStack));
+    obj->data = (Element*)malloc(sizeof(Element) * MAX_SIZE);
+    obj->topIndex = -1;
+    return obj;
+}
+
+void minStackPush(MinStack* obj, int val) {
+    obj->topIndex++;
+    obj->data[obj->topIndex].val = val;
+    if (obj->topIndex == 0) {
+        obj->data[obj->topIndex].min = val;
+    } else {
+        int currentMin = obj->data[obj->topIndex - 1].min;
+        obj->data[obj->topIndex].min = (val < currentMin) ? val : currentMin;
+    }
+}
+
+void minStackPop(MinStack* obj) {
+    if (obj->topIndex >= 0) {
+        obj->topIndex--;
+    }
+}
+
+int minStackTop(MinStack* obj) {
+    return obj->data[obj->topIndex].val;
+}
+
+int minStackGetMin(MinStack* obj) {
+    return obj->data[obj->topIndex].min;
+}
+
+void minStackFree(MinStack* obj) {
+    free(obj->data);
+    free(obj);
+}
