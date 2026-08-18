@@ -1,0 +1,29 @@
+#include <stdbool.h>
+#include <stdlib.h>
+
+typedef struct {
+    int target_value;
+    int required_k;
+    int consec_count;
+} DataStream;
+DataStream* dataStreamCreate(int value, int k) {
+    DataStream* obj = (DataStream*)malloc(sizeof(DataStream));
+    obj->target_value = value;
+    obj->required_k = k;
+    obj->consec_count = 0;
+    return obj;
+}
+
+bool dataStreamConsec(DataStream* obj, int num) {
+    if (num == obj->target_value) {
+        obj->consec_count++;
+    } else {
+        obj->consec_count = 0;
+    }
+    
+    return obj->consec_count >= obj->required_k;
+}
+
+void dataStreamFree(DataStream* obj) {
+    free(obj);
+}
