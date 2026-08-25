@@ -1,0 +1,24 @@
+int minLengthAfterRemovals(int* nums, int numsSize) {
+    int max_freq = 0;
+    int current_freq = 1;
+    
+    for (int i = 1; i < numsSize; i++) {
+        if (nums[i] == nums[i - 1]) {
+            current_freq++;
+        } else {
+            if (current_freq > max_freq) {
+                max_freq = current_freq;
+            }
+            current_freq = 1;
+        }
+    }
+    if (current_freq > max_freq) {
+        max_freq = current_freq;
+    }
+    
+    if (max_freq > numsSize / 2) {
+        return 2 * max_freq - numsSize;
+    } else {
+        return numsSize % 2;
+    }
+}
