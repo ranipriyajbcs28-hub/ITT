@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define INF 1000000000
+
+typedef struct {
+    int and_val;
+    int cost;
+} State;
+
+int minimumValueSum(int* nums, int numsSize, int* andValues, int andValuesSize) {
+    int n = numsSize;
+    int m = andValuesSize;
+
+    State dp[11][32];
+    int dp_size[11];
+    memset(dp_size, 0, sizeof(dp_size));
+    dp[0][0] = (State){-1, 0};
+    dp_size[0] = 1;
+    State next_dp[11][32];
+    int next_dp_size[11];
+    int min_cost_map[131072]; 
+    int unique_ands[32];
+
+    for (int i = 0; i < n; i++) {
+        memset(next_dp_size, 0, sizeof(next_dp_size));
+
+        for (int j = 0; j <= m; j++) {
+            if (dp_size[j] == 0) continue;
+            int unique_count = 0;
+            for (int k = 0; k < dp_size[j]; k++) {
+                int next_and = dp[j][k].and_val & nums[i];
+                int current_cost = dp[j][k].cost;
+                if (j < m && (next_and & andValues[j]) != andValues[j]) {
+                    continue;
+                }
+                if (min_cost_map[next_and] == 0) {
+                    unique_ands[unique_count++] = next_and;
+                    min_cost_map[next_and] = current_cost;
+                } else if (current_cost < min_cost_map[next_and]) {
+                    min_cost_map[next_and] = current_cost;
+                }
+            }
+
+            for (int k = 0; k < unique_count; k++) {
+                int and_val = unique_ands[k];
+                next_dp[j][next_dp_size[j]++] = (State){and_val, min_cost_map[and_val]};
+                min_cost_map[and_val] = 0; 
+            }
+        }
+        for (int j = 0; j < m; j++) {
+            int best_split_cost = INF;
+            for (int k = 0; k < next_dp_size[j]; k++) {
+                if (next_dp[j][k].and_val == andValues[j]) {
+                    if (next_dp[j][k].cost < best_split_cost) {
+                        best_split_cost = next_dp[j][k].cost;
+                    }
+                }
+            }
+
+            if (best_split_cost != INF) {
+                int new_cost = best_split_cost + nums[i];
+                int found = 0;
+                for (int k = 0; k < next_dp_size[j + 1]; k++) {
+                    if (next_dp[j + 1][k].and_val == -1) {
+                        if (new_cost < next_dp[j + 1][k].cost) {
+                            next_dp[j + 1][k].cost = new_cost;
+                        }
+                        found = 1;
+                        break;
+                    }
+                }
+                if (!found && next_dp_size[j + 1] < 32) {
+                    next_dp[j + 1][next_dp_size[j + 1]++] = (State){-1, new_cost};
+                }
+            }
+        }
+
+        for (int j = 0; j <= m; j++) {
+            dp_size[j] = next_dp_size[j];
+            for (int k = 0; k < dp_size[j]; k++) {
+                dp[j][k] = next_dp[j][k];
+            }
+        }
+    }
+
+    for (int k = 0; k < dp_size[m]; k++) {
+        if (dp[m][k].and_val == -1) {
+            return dp[m][k].cost;
+        }
+    }
+
+    return -1;
+}
