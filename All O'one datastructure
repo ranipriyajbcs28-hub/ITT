@@ -1,0 +1,226 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+#define HASH_SIZE 10007 
+struct Bucket;
+typedef struct KeyNode {
+    char key[12];
+    struct Bucket* bucket;
+    struct KeyNode* next;
+} KeyNode;
+typedef struct KeySetNode {
+    char key[12];
+    struct KeySetNode* next;
+} KeySetNode;
+typedef struct Bucket {
+    int count;
+    KeySetNode* keys_head[HASH_SIZE]; 
+    int keys_count;                  
+    struct Bucket* prev;
+    struct Bucket* next;
+} Bucket;
+typedef struct {
+    KeyNode* key_map[HASH_SIZE]; 
+    Bucket* head;                
+    Bucket* tail;                
+} AllOne;
+unsigned int hash(const char* key) {
+    unsigned int h = 0;
+    while (*key) {
+        h += *key++;
+        h += (h << 10);
+        h ^= (h >> 6);
+    }
+    h += (h << 3);
+    h ^= (h >> 11);
+    h += (h << 15);
+    return h % HASH_SIZE;
+}
+Bucket* createBucket(int count) {
+    Bucket* b = (Bucket*)malloc(sizeof(Bucket));
+    b->count = count;
+    b->keys_count = 0;
+    b->prev = NULL;
+    b->next = NULL;
+    memset(b->keys_head, 0, sizeof(b->keys_head));
+    return b;
+}
+void removeBucketIfEmpty(AllOne* obj, Bucket* b) {
+    if (b->keys_count == 0) {
+        b->prev->next = b->next;
+        b->next->prev = b->prev;
+        free(b);
+    }
+}
+void bucketAddKey(Bucket* b, const char* key) {
+    unsigned int h = hash(key);
+    KeySetNode* node = (KeySetNode*)malloc(sizeof(KeySetNode));
+    strcpy(node->key, key);
+    node->next = b->keys_head[h];
+    b->keys_head[h] = node;
+    b->keys_count++;
+}
+void bucketRemoveKey(Bucket* b, const char* key) {
+    unsigned int h = hash(key);
+    KeySetNode* curr = b->keys_head[h];
+    KeySetNode* prev = NULL;
+    while (curr != NULL) {
+        if (strcmp(curr->key, key) == 0) {
+            if (prev == NULL) {
+                b->keys_head[h] = curr->next;
+            } else {
+                prev->next = curr->next;
+            }
+            free(curr);
+            b->keys_count--;
+            return;
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+}
+char* bucketGetAnyKey(Bucket* b) {
+    for (int i = 0; i < HASH_SIZE; i++) {
+        if (b->keys_head[i] != NULL) {
+            return b->keys_head[i]->key;
+        }
+    }
+    return "";
+}
+
+AllOne* allOneCreate() {
+    AllOne* obj = (AllOne*)malloc(sizeof(AllOne));
+    memset(obj->key_map, 0, sizeof(obj->key_map));
+    
+    obj->head = createBucket(0);
+    obj->tail = createBucket(0);
+    obj->head->next = obj->tail;
+    obj->tail->prev = obj->head;
+    
+    return obj;
+}
+
+void allOneInc(AllOne* obj, char* key) {
+    unsigned int h = hash(key);
+    KeyNode* curr_key_node = obj->key_map[h];
+    while (curr_key_node != NULL && strcmp(curr_key_node->key, key) != 0) {
+        curr_key_node = curr_key_node->next;
+    }
+    
+    Bucket* curr_bucket = NULL;
+    Bucket* next_bucket = NULL;
+    int new_count = 1;
+    
+    if (curr_key_node != NULL) {
+        curr_bucket = curr_key_node->bucket;
+        new_count = curr_bucket->count + 1;
+        bucketRemoveKey(curr_bucket, key);
+        next_bucket = curr_bucket->next;
+    } else {
+        next_bucket = obj->head->next;
+    }
+    
+    if (next_bucket == obj->tail || next_bucket->count != new_count) {
+        Bucket* new_bucket = createBucket(new_count);
+        Bucket* prev_node = (curr_key_node != NULL) ? curr_bucket : obj->head;
+        
+        new_bucket->next = prev_node->next;
+        new_bucket->prev = prev_node;
+        prev_node->next->prev = new_bucket;
+        prev_node->next = new_bucket;
+        
+        next_bucket = new_bucket;
+    }
+    
+    bucketAddKey(next_bucket, key);
+    
+    if (curr_key_node != NULL) {
+        curr_key_node->bucket = next_bucket;
+        removeBucketIfEmpty(obj, curr_bucket);
+    } else {
+        KeyNode* new_key_node = (KeyNode*)malloc(sizeof(KeyNode));
+        strcpy(new_key_node->key, key);
+        new_key_node->bucket = next_bucket;
+        new_key_node->next = obj->key_map[h];
+        obj->key_map[h] = new_key_node;
+    }
+}
+
+void allOneDec(AllOne* obj, char* key) {
+    unsigned int h = hash(key);
+    KeyNode* curr_key_node = obj->key_map[h];
+    KeyNode* prev_key_node = NULL;
+    
+    while (curr_key_node != NULL && strcmp(curr_key_node->key, key) != 0) {
+        prev_key_node = curr_key_node;
+        curr_key_node = curr_key_node->next;
+    }
+    
+    if (curr_key_node == NULL) return;
+    
+    Bucket* curr_bucket = curr_key_node->bucket;
+    int new_count = curr_bucket->count - 1;
+    bucketRemoveKey(curr_bucket, key);
+    
+    if (new_count == 0) {
+        if (prev_key_node == NULL) {
+            obj->key_map[h] = curr_key_node->next;
+        } else {
+            prev_key_node->next = curr_key_node->next;
+        }
+        free(curr_key_node);
+    } else {
+        Bucket* prev_bucket = curr_bucket->prev;
+        if (prev_bucket == obj->head || prev_bucket->count != new_count) {
+            Bucket* new_bucket = createBucket(new_count);
+            new_bucket->next = curr_bucket;
+            new_bucket->prev = curr_bucket->prev;
+            curr_bucket->prev->next = new_bucket;
+            curr_bucket->prev = new_bucket;
+            prev_bucket = new_bucket;
+        }
+        bucketAddKey(prev_bucket, key);
+        curr_key_node->bucket = prev_bucket;
+    }
+    
+    removeBucketIfEmpty(obj, curr_bucket);
+}
+
+char* allOneGetMaxKey(AllOne* obj) {
+    if (obj->tail->prev == obj->head) return "";
+    return bucketGetAnyKey(obj->tail->prev);
+}
+
+char* allOneGetMinKey(AllOne* obj) {
+    if (obj->head->next == obj->tail) return "";
+    return bucketGetAnyKey(obj->head->next);
+}
+
+void allOneFree(AllOne* obj) {
+    for (int i = 0; i < HASH_SIZE; i++) {
+        KeyNode* curr = obj->key_map[i];
+        while (curr != NULL) {
+            KeyNode* next = curr->next;
+            free(curr);
+            curr = next;
+        }
+    }
+    
+    Bucket* curr_b = obj->head;
+    while (curr_b != NULL) {
+        Bucket* next_b = curr_b->next;
+        for (int i = 0; i < HASH_SIZE; i++) {
+            KeySetNode* curr_set = curr_b->keys_head[i];
+            while (curr_set != NULL) {
+                KeySetNode* next_set = curr_set->next;
+                free(curr_set);
+                curr_set = next_set;
+            }
+        }
+        free(curr_b);
+        curr_b = next_b;
+    }
+    free(obj);
+}
